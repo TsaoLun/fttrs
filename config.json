@@ -1,0 +1,9 @@
+{
+    "parentAddr": "127.0.0.1",
+    "parentPort": "4500",
+    "parentToken": "73a94801-5886-4f5b-89f2-915640461fax",
+    "name": "Jiangsu",
+    "bindPort": "4501",
+    "hostPort": "5501",
+    "childToken": "73a94801-5886-4f5b-89f2-915640461fax"
+}
