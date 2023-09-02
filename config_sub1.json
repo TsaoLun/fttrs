@@ -2,7 +2,7 @@
     "parentAddr": "0.0.0.0",
     "parentPort": "4500",
     "parentToken": "73a94801-5883-4f5b-89f2-915640461fax",
-    "name": "Jiangsu",
+    "name": "sub1",
     "bindPort": "4501",
     "hostPort": "5501",
     "childToken": "73a94801-5883-4f5b-89f2-915640461fax"

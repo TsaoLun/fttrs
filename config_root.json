@@ -1,0 +1,9 @@
+{
+    "parentAddr": "",
+    "parentPort": "",
+    "parentToken": "73a94801-5883-4f5b-89f2-915640461fax",
+    "name": "root",
+    "bindPort": "4500",
+    "hostPort": "5500",
+    "childToken": "73a94801-5883-4f5b-89f2-915640461fax"
+}

@@ -28,7 +28,14 @@ var (
 )
 
 func main() {
-	config := readConfig("./config.json")
+	// parse -c param as config file path
+	var configPath string
+	if len(os.Args) > 1 {
+		configPath = os.Args[1]
+	} else {
+		configPath = "./config.json"
+	}
+	config := readConfig(configPath)
 	if config.ParentAddr != "" {
 		createFrpcIni(&config)
 		execFrpc(&config)
@@ -66,8 +73,9 @@ func createFrpcIni(config *Config) {
 	file.WriteString("\n")
 	file.WriteString("[web]\n")
 	file.WriteString(fmt.Sprintf("type = http\n"))
-	file.WriteString(fmt.Sprintf("local_port = %s\n", config.BindPort))
-	file.WriteString(fmt.Sprintf("custom_domains = %s\n", "0.0.0.0:5500"))
+	file.WriteString(fmt.Sprintf("local_port = %s\n", config.HostPort))
+	file.WriteString(fmt.Sprintf("custom_domains = %s\n", "0.0.0.0"))
+	file.WriteString(fmt.Sprintf("locations = /%s\n", config.Name))
 }
 
 func createFrpsIni(config *Config) {
