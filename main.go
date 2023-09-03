@@ -1,16 +1,18 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-	"golang.org/x/sync/errgroup"
+	"io"
 	"log"
 	"os"
 	"os/exec"
 	"runtime"
-	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"golang.org/x/sync/errgroup"
 )
 
 type Config struct {
@@ -97,18 +99,7 @@ func execFrpc(config *Config) {
 		<-make(chan os.Signal)
 		cmd.Process.Kill()
 	}()
-	go func() {
-		time.Sleep(2 * time.Second)
-		log.Printf("link success: %s parent addr %s bind port %s\n", config.Name, config.ParentAddr, config.ParentPort)
-	}()
-	go func() {
-		output, err := cmd.Output()
-		if err != nil {
-			log.Fatalf("exec frpc error: %s\n", err)
-		}
-		log.Printf("%s\n", output)
-		os.Exit(0)
-	}()
+	go runExec(cmd)
 }
 
 func execFrps(config *Config) {
@@ -118,16 +109,39 @@ func execFrps(config *Config) {
 		cmd.Process.Kill()
 		return nil
 	})
-	go func() {
-		time.Sleep(2 * time.Second)
-		log.Printf("start frps success: %s bind %s host %s\n", config.Name, config.BindPort, config.HostPort)
-	}()
-	go func() {
-		output, err := cmd.Output()
+	go runExec(cmd)
+}
+
+func GetOutput(reader *bufio.Reader) {
+	var sumOutput string
+	outputBytes := make([]byte, 200)
+	for {
+		n, err := reader.Read(outputBytes)
 		if err != nil {
-			log.Fatalf("exec frps error: %s\n", err)
+			if err == io.EOF {
+				break
+			}
+			fmt.Println(err)
+			sumOutput += err.Error()
 		}
-		log.Printf("%s\n", output)
-		os.Exit(0)
-	}()
+		output := string(outputBytes[:n])
+		fmt.Print(output) //输出屏幕内容
+		sumOutput += output
+	}
+}
+
+func runExec(cmd *exec.Cmd) {
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Fatalf("exec frp stdout error: %s\n", err)
+	}
+	readout := bufio.NewReader(stdout)
+	go GetOutput(readout)
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Fatalf("exec frp stderr error: %s\n", err)
+	}
+	readerr := bufio.NewReader(stderr)
+	go GetOutput(readerr)
+	cmd.Run()
 }
