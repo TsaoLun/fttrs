@@ -95,7 +95,7 @@ func execFrpc(config *Config) {
 	}()
 	go func() {
 		time.Sleep(2 * time.Second)
-		log.Printf("link success: %s parent addr %s port %s\n", config.Name, config.ParentAddr, config.ParentPort)
+		log.Printf("link success: %s parent addr %s bind port %s\n", config.Name, config.ParentAddr, config.ParentPort)
 	}()
 	go func() {
 		output, err := cmd.Output()
