@@ -3,13 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"golang.org/x/sync/errgroup"
 	"log"
 	"os"
 	"os/exec"
 	"time"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/logger"
-	"golang.org/x/sync/errgroup"
 )
 
 type Config struct {
@@ -28,13 +28,10 @@ var (
 )
 
 func main() {
-	// parse -c param as config file path
-	var configPath string
-	if len(os.Args) > 1 {
-		configPath = os.Args[1]
-	} else {
-		configPath = "./config.json"
+	if os.Args[1] == "" {
+		log.Fatal("config path not found")
 	}
+	var configPath = os.Args[1]
 	config := readConfig(configPath)
 	if config.ParentAddr != "" {
 		createFrpcIni(&config)
@@ -44,8 +41,8 @@ func main() {
 		app.Listen(fmt.Sprintf(":%s", config.HostPort))
 	}
 
-		createFrpsIni(&config)
-		execFrps(&config)
+	createFrpsIni(&config)
+	execFrps(&config)
 
 	g.Wait()
 }
@@ -71,7 +68,7 @@ func createFrpcIni(config *Config) {
 	file.WriteString(fmt.Sprintf("server_port = %s\n", config.ParentPort))
 	file.WriteString(fmt.Sprintf("token = %s\n", config.ParentToken))
 	file.WriteString("\n")
-	file.WriteString("[web]\n")
+	file.WriteString(fmt.Sprintf("[%s]\n", config.Name))
 	file.WriteString(fmt.Sprintf("type = http\n"))
 	file.WriteString(fmt.Sprintf("local_port = %s\n", config.HostPort))
 	file.WriteString(fmt.Sprintf("custom_domains = %s\n", "0.0.0.0"))
@@ -92,14 +89,14 @@ func createFrpsIni(config *Config) {
 
 func execFrpc(config *Config) {
 	cmd := exec.Command(fmt.Sprintf("./%s/frpc", osType), "-c", "./frpc.ini")
-	go func ()  {
+	go func() {
 		<-make(chan os.Signal)
 		cmd.Process.Kill()
 	}()
 	go func() {
 		time.Sleep(2 * time.Second)
 		log.Printf("link success: %s parent addr %s port %s\n", config.Name, config.ParentAddr, config.ParentPort)
-	}();
+	}()
 	go func() {
 		output, err := cmd.Output()
 		if err != nil {
@@ -120,7 +117,7 @@ func execFrps(config *Config) {
 	go func() {
 		time.Sleep(2 * time.Second)
 		log.Printf("start frps success: %s bind %s host %s\n", config.Name, config.BindPort, config.HostPort)
-	}();
+	}()
 	go func() {
 		output, err := cmd.Output()
 		if err != nil {
