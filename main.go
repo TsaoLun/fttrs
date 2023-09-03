@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"time"
 )
 
@@ -24,10 +25,13 @@ type Config struct {
 
 var (
 	g      errgroup.Group
-	osType = "darwin" // linux darwin
+	suffix = ""
 )
 
 func main() {
+	if runtime.GOOS == "windows" {
+		suffix = ".exe"
+	}
 	if os.Args[1] == "" {
 		log.Fatal("config path not found")
 	}
@@ -88,7 +92,7 @@ func createFrpsIni(config *Config) {
 }
 
 func execFrpc(config *Config) {
-	cmd := exec.Command(fmt.Sprintf("./%s/frpc", osType), "-c", "./frpc.ini")
+	cmd := exec.Command(fmt.Sprintf("./%s/frpc%s", runtime.GOOS, suffix), "-c", "./frpc.ini")
 	go func() {
 		<-make(chan os.Signal)
 		cmd.Process.Kill()
@@ -108,7 +112,7 @@ func execFrpc(config *Config) {
 }
 
 func execFrps(config *Config) {
-	cmd := exec.Command(fmt.Sprintf("./%s/frps", osType), "-c", "./frps.ini")
+	cmd := exec.Command(fmt.Sprintf("./%s/frps%s", runtime.GOOS, suffix), "-c", "./frps.ini")
 	g.Go(func() error {
 		<-make(chan os.Signal)
 		cmd.Process.Kill()
