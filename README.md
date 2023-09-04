@@ -15,3 +15,5 @@
 `curl 0.0.0.0:5500/sub1` 从 root 5500 端口访问 sub1 服务
 
 `curl 0.0.0.0:5500/sub2` 从 root 5500 端口访问 sub2 服务
+
+> 报错 `_cgo_export.c:3:10: fatal error: stdlib.h: No such file or directory #include <stdlib.h> ` 可尝试 `sudo apt install --reinstall build-essential`
